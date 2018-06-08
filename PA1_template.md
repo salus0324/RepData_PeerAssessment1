@@ -7,6 +7,7 @@ output:
 
 
 ## Loading and preprocessing the data
+1. Loading Data
 
 ```r
 # Load knitr library
@@ -15,12 +16,18 @@ library(knitr)
 unzip(zipfile = "activity.zip")
 # Read activity.csv and save it as activity data frame
 activity <- read.csv("activity.csv", header=T, stringsAsFactors = F)
+```
+  
+2. Process/transforming the data
+
+```r
 # Transform the date column class date
 activity <- transform(activity, date = as.Date(date))
 ```
 
 
 ## What is mean total number of steps taken per day?
+1. Making a histogram of the total number of steps taken each day
 
 ```r
 # Get sum of steps taken per day
@@ -29,7 +36,9 @@ meanDay <- tapply(activity$steps, activity$date, sum, na.rm=T)
 hist(meanDay)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+  
+2. The mean and median total number steps taken per day
 
 ```r
 # Get mean and median of total number steps taken per day
@@ -54,6 +63,7 @@ print (median)
 ```
 
 ## What is the average daily activity pattern?
+1. Making a time series plot of the 5 minute interval(x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```r
 # Get the mean of steps taken for each interval
@@ -68,7 +78,9 @@ daily <- transform(daily, Interval = as.numeric(as.character(Interval)))
 plot(daily$AveSteps ~ daily$Interval, type="l")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+  
+2. The 5-minute interval that contains the maximum number of steps
 
 ```r
 # Get the Interval with maximum average number of steps
@@ -82,6 +94,7 @@ print(maxInterval)
 ```
 
 ## Imputing missing values
+1. The total number of missing values in the dataset
 
 ```r
 # Calculate the total number of missing values
@@ -93,6 +106,8 @@ print (numNA)
 ```
 ## [1] 2304
 ```
+  
+2. The NA steps will be replaced by the mean for that 5-minute interval.
 
 ```r
 # GetAveStep function that grabs aveage step with given interval
@@ -102,15 +117,20 @@ GetAveSteps <- function(x){
 # Use GetAveStep function to fill all the missing values
 imputeNA <- activity
 imputeNA[is.na(imputeNA$steps),]$steps <- sapply(imputeNA[is.na(imputeNA$steps),]$interval, GetAveSteps)
-
-
 # Get sum of steps taken per day using imputeNA
 meanDay_wo_NA <- tapply(imputeNA$steps, imputeNA$date, sum, na.rm=T)
+```
+  
+3. Make a histogram of the total number of steps taken each day
+
+```r
 # Print histogram of meanDay
 hist(meanDay_wo_NA)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+  
+4. Calculate and report the mean and median total number of steps taken per day. 
 
 ```r
 # Get mean and median of total number steps taken per day
@@ -135,6 +155,7 @@ print (median_wo_NA)
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```r
 # Import lubridate library
@@ -158,6 +179,11 @@ imputeNA$day <- wday(imputeNA$date,label=T)
 # Indicate if the date is weekend or weekday
 imputeNA$wdwk <- (imputeNA$day=="Sun" |imputeNA$day=="Sat")
 imputeNA$wdwk <- factor(imputeNA$wdwk, labels=c("weekend", "weekday"))
+```
+  
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+```r
 # Aggregate imputeNA by the mean of steps
 imputeMean <- with(imputeNA, aggregate(steps, list(interval = interval, wdwk = wdwk), mean))
 # Import lattice library
@@ -166,4 +192,4 @@ library(lattice)
 with(imputeMean, xyplot(x~interval|wdwk, main="Number of Steps over Interval", ylab="Number of Steps", xlab="Interval", layout=c(1,2), type='l'))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
